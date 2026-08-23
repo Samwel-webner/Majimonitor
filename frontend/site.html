@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MajiMonitor - Site Detail</title>
+<link rel="stylesheet" href="css/style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.0/feather.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="app-shell">
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+    <span class="sidebar-brand-icon"></span>
+    <span>MajiMonitor</span>
+</div>
+<nav class="sidebar-nav">
+    <a href="index.html"><i data-feather="grid"></i> Dashboard</a>
+    <a href="alerts.html"><i data-feather="alert-triangle"></i> Alerts</a>
+    <a href="officers.html" class="active"><i data-feather="users"></i> Officers</a>
+    <a href="site-management.html"><i data-feather="map-pin"></i> Site Management</a>
+    <a href="profile.html"><i data-feather="settings"></i> My Profile</a>
+    <a href="help.html"><i data-feather="help-circle"></i> Help Center</a>
+</nav>
+        <div class="sidebar-footer">
+    <div class="sidebar-user" id="sidebar-user"></div>
+    <button id="logout-btn"><i data-feather="log-out"></i> Log Out</button>
+</div>
+    </aside>
+
+    <main class="main-content">
+        <h1 id="site-name">Loading...</h1>
+        <p id="site-meta"></p>
+
+        <div id="parameter-grid">
+            <!-- populated by site.js -->
+        </div>
+
+        <button id="export-readings-btn">Export Last 24h (CSV)</button>
+
+        <div class="chart-panel">
+    <canvas id="history-chart" height="90"></canvas>
+</div>
+    </main>
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/api.js"></script>
+<script src="js/site.js"></script>
+</body>
+</html>

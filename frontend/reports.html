@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MajiMonitor - Reports &amp; Analytics</title>
+<link rel="stylesheet" href="css/style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.0/feather.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+</head>
+<body>
+
+<div class="app-shell">
+    <aside class="sidebar">
+        <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle sidebar">
+            <i data-feather="chevron-left"></i>
+        </button>
+
+        <div class="sidebar-brand">
+            <span class="sidebar-brand-icon"></span>
+            <span class="brand-label">MajiMonitor</span>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="index.html" title="Dashboard"><i data-feather="grid"></i> <span class="nav-label">Dashboard</span></a>
+            <a href="alerts.html" title="Alerts"><i data-feather="alert-triangle"></i> <span class="nav-label">Alerts</span></a>
+            <a href="officers.html" title="Officers"><i data-feather="users"></i> <span class="nav-label">Officers</span></a>
+            <a href="site-management.html" title="Site Management"><i data-feather="map-pin"></i> <span class="nav-label">Site Management</span></a>
+            <a href="filters.html" title="Water Filters"><i data-feather="filter"></i> <span class="nav-label">Water Filters</span></a>
+            <a href="profile.html" title="My Profile"><i data-feather="settings"></i> <span class="nav-label">My Profile</span></a>
+            <a href="help.html" title="Help Center"><i data-feather="help-circle"></i> <span class="nav-label">Help Center</span></a>
+            <a href="reports.html" class="active" title="Reports &amp; Analytics"><i data-feather="bar-chart-2"></i> <span class="nav-label">Reports &amp; Analytics</span></a>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="sidebar-user" id="sidebar-user"></div>
+            <button id="logout-btn" title="Log Out"><i data-feather="log-out"></i> <span class="logout-label">Log Out</span></button>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <div class="panel">
+            <h1>Reports &amp; Analytics</h1>
+            <p>Trends over time, and a day-by-day historical lookback</p>
+        </div>
+
+        <!-- Trend chart -->
+        <div class="panel">
+            <h2>Alert Trend (Last 30 Days)</h2>
+            <canvas id="trend-chart" height="80"></canvas>
+        </div>
+
+        <!-- Calendar + day detail -->
+        <div class="dashboard-columns">
+            <div class="panel">
+                <div class="calendar-header">
+                    <button id="prev-month-btn" aria-label="Previous month"><i data-feather="chevron-left"></i></button>
+                    <h2 id="calendar-month-label"></h2>
+                    <button id="next-month-btn" aria-label="Next month"><i data-feather="chevron-right"></i></button>
+                </div>
+                <div class="calendar-grid" id="calendar-grid">
+                    <!-- populated by reports.js -->
+                </div>
+            </div>
+
+            <div class="panel">
+                <h2 id="selected-day-label">Select a day</h2>
+                <div id="day-details">
+                    <p class="panel-empty">Click any day on the calendar to see its alert activity.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/logo.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/api.js"></script>
+<script src="js/sidebar.js"></script>
+<script src="js/reports.js"></script>
+</body>
+</html>

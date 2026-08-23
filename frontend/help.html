@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MajiMonitor - Help Center</title>
+<link rel="stylesheet" href="css/style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.0/feather.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="app-shell">
+    <aside class="sidebar">
+        <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle sidebar">
+            <i data-feather="chevron-left"></i>
+        </button>
+
+        <div class="sidebar-brand">
+            <span class="sidebar-brand-icon"></span>
+            <span class="brand-label">MajiMonitor</span>
+        </div>
+        <nav class="sidebar-nav">
+    <a href="index.html" title="Dashboard"><i data-feather="grid"></i> <span class="nav-label">Dashboard</span></a>
+    <a href="alerts.html" title="Alerts"><i data-feather="alert-triangle"></i> <span class="nav-label">Alerts</span></a>
+    <a href="officers.html" title="Officers"><i data-feather="users"></i> <span class="nav-label">Officers</span></a>
+    <a href="site-management.html" title="Site Management"><i data-feather="map-pin"></i> <span class="nav-label">Site Management</span></a>
+    <a href="filters.html" title="Water Filters"><i data-feather="filter"></i> <span class="nav-label">Water Filters</span></a>
+    <a href="profile.html" title="My Profile"><i data-feather="settings"></i> <span class="nav-label">My Profile</span></a>
+    <a href="help.html" class="active" title="Help Center"><i data-feather="help-circle"></i> <span class="nav-label">Help Center</span></a>
+    <a href="reports.html" title="Reports &amp; Analytics"><i data-feather="bar-chart-2"></i> <span class="nav-label">Reports &amp; Analytics</span></a>
+</nav>
+        <div class="sidebar-footer">
+            <div class="sidebar-user" id="sidebar-user"></div>
+            <button id="logout-btn" title="Log Out"><i data-feather="log-out"></i> <span class="logout-label">Log Out</span></button>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <div class="panel">
+            <h1>Help Center</h1>
+            <p>Everything you need to know about using MajiMonitor</p>
+        </div>
+
+        <!-- Quick Start Guide -->
+        <div class="panel">
+            <h2><i data-feather="book-open"></i> Quick Start Guide</h2>
+            <div class="help-steps">
+                <div class="help-step">
+                    <div class="help-step-number">1</div>
+                    <div>
+                        <div class="help-step-title">Check the Dashboard</div>
+                        <div class="help-step-text">The Dashboard shows a live overview of every monitoring site — color-coded green (safe), yellow (warning), or red (critical) based on the latest sensor readings.</div>
+                    </div>
+                </div>
+                <div class="help-step">
+                    <div class="help-step-number">2</div>
+                    <div>
+                        <div class="help-step-title">Click into a Site</div>
+                        <div class="help-step-text">Click any site card to see its individual parameter readings and a 24-hour history chart. Click different parameter cards to switch what the chart shows.</div>
+                    </div>
+                </div>
+                <div class="help-step">
+                    <div class="help-step-number">3</div>
+                    <div>
+                        <div class="help-step-title">Respond to Alerts</div>
+                        <div class="help-step-text">Visit the Alerts page to see everything that's breached a safe threshold. Acknowledge an alert once you're aware of it, and Resolve it once the issue is fixed.</div>
+                    </div>
+                </div>
+                <div class="help-step">
+                    <div class="help-step-number">4</div>
+                    <div>
+                        <div class="help-step-title">Export Reports</div>
+                        <div class="help-step-text">Both the Site Detail page and Alerts page have an "Export CSV" button, letting you download readings or alert history to open in Excel.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FAQ -->
+        <div class="panel">
+            <h2><i data-feather="help-circle"></i> Frequently Asked Questions</h2>
+            <div class="faq-item">
+                <div class="faq-question">What do the severity colors mean?</div>
+                <div class="faq-answer">Green means the reading is within the safe range. Yellow (warning) means it's outside safe but not yet dangerous. Red (critical) means it's outside even the warning range and needs urgent attention.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">Why didn't I get an alert email?</div>
+                <div class="faq-answer">MajiMonitor only sends emails for critical alerts, to avoid flooding your inbox. Warning-level alerts are visible on the dashboard and Alerts page but don't trigger an email.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">I forgot my password. What do I do?</div>
+                <div class="faq-answer">On the login page, click "Forgot Password?" and enter your email. You'll receive a reset link valid for 30 minutes.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">Can I add a new monitoring site myself?</div>
+                <div class="faq-answer">Only admin accounts can add or deactivate sites, via the Site Management page. Contact your administrator if you need a new site added.</div>
+            </div>
+        </div>
+
+        <!-- How Status is Determined -->
+<div class="panel">
+    <h2><i data-feather="activity"></i> How Alert Status Is Determined</h2>
+    <p class="about-text">Each water quality parameter has two threshold bands: a <strong>safe range</strong> and a wider <strong>warning range</strong>. A reading is classified as follows:</p>
+    <div class="help-steps">
+        <div class="help-step">
+            <div class="help-step-number safe-num">✓</div>
+            <div>
+                <div class="help-step-title">Safe</div>
+                <div class="help-step-text">The reading falls within the ideal safe range for that parameter.</div>
+            </div>
+        </div>
+        <div class="help-step">
+            <div class="help-step-number warning-num">!</div>
+            <div>
+                <div class="help-step-title">Warning</div>
+                <div class="help-step-text">The reading is outside the safe range, but still within the wider warning range — worth monitoring, not yet dangerous.</div>
+            </div>
+        </div>
+        <div class="help-step">
+            <div class="help-step-number critical-num">✕</div>
+            <div>
+                <div class="help-step-title">Critical</div>
+                <div class="help-step-text">The reading falls outside even the warning range and requires urgent attention.</div>
+            </div>
+        </div>
+    </div>
+
+    <h2 style="margin-top:24px;">Current Thresholds</h2>
+    <table>
+        <thead>
+            <tr><th>Parameter</th><th>Unit</th><th>Safe Range</th><th>Warning Range</th></tr>
+        </thead>
+        <tbody id="thresholds-table-body">
+            <!-- populated by help.js -->
+        </tbody>
+    </table>
+
+    <p style="margin-top:14px; font-size:0.85rem; color:#8A9598;">A site's overall status badge reflects its single worst active alert — for example, a site with one critical parameter shows as "Critical" even if every other parameter is safe.</p>
+</div>
+
+        <!-- Contact -->
+        <div class="panel">
+            <h2><i data-feather="phone"></i> Contact Support</h2>
+            <div class="contact-grid">
+                <div class="contact-card">
+                    <i data-feather="phone-call"></i>
+                    <div class="contact-label">Phone</div>
+                    <div class="contact-value">+254 700 000 000</div>
+                </div>
+                <div class="contact-card">
+                    <i data-feather="mail"></i>
+                    <div class="contact-label">Email</div>
+                    <div class="contact-value">support@thiwasco.co.ke</div>
+                </div>
+                <div class="contact-card">
+                    <i data-feather="map-pin"></i>
+                    <div class="contact-label">Office</div>
+                    <div class="contact-value">THIWASCO Head Office, Thika</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- About -->
+        <div class="panel">
+            <h2><i data-feather="info"></i> About MajiMonitor</h2>
+            <p class="about-text">MajiMonitor is a real-time water quality monitoring system built for THIWASCO, tracking pH, turbidity, dissolved oxygen, conductivity, temperature, and TDS across monitoring sites along the Thika River basin. It automatically flags unsafe readings, notifies staff by email, and keeps a full historical record for reporting and compliance.</p>
+        </div>
+    </main>
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/logo.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/api.js"></script>
+<script src="js/sidebar.js"></script>
+<script>
+feather.replace();
+</script>
+</body>
+</html>
