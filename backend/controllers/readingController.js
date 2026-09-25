@@ -3,6 +3,7 @@ const parameterModel = require('../models/parameterModel');
 const alertModel = require('../models/alertModel');
 const siteModel = require('../models/siteModel');
 const { sendAlertEmail } = require('../services/emailService');
+const { sendCriticalAlertPush } = require('../services/pushService');
 
 async function submitReading(req, res) {
     try {
@@ -31,15 +32,26 @@ async function submitReading(req, res) {
             });
 
             if (zone === 'critical') {
-                const site = await siteModel.getSiteById(site_id);
-                sendAlertEmail({
-                    siteName: site.name,
-                    parameterName: parameter.name,
-                    value,
-                    unit: parameter.unit,
-                    severity: zone
-                });
-            }
+    const site = await siteModel.getSiteById(site_id);
+    sendAlertEmail({
+        siteName: site.name,
+        parameterName: parameter.name,
+        value,
+        unit: parameter.unit,
+        severity: zone
+    });
+
+    const adminTokens = await userModel.getAdminPushTokens();
+    adminTokens.forEach(pushToken => {
+        sendCriticalAlertPush({
+            pushToken,
+            siteName: site.name,
+            parameterName: parameter.name,
+            value,
+            unit: parameter.unit,
+        });
+    });
+}
         }
 
         return res.status(201).json({ reading, zone, alert });

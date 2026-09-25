@@ -5,6 +5,9 @@
 const mysql = require('mysql2/promise');
 require('dotenv').config();
 
+const fs = require('fs');
+const path = require('path');
+
 const pool = mysql.createPool({
     host: process.env.DB_HOST || 'localhost',
     port: process.env.DB_PORT || 3306,
@@ -13,7 +16,11 @@ const pool = mysql.createPool({
     database: process.env.DB_NAME || 'majimonitor',
     waitForConnections: true,
     connectionLimit: 10,
-    queueLimit: 0
+    queueLimit: 0,
+    ssl: {
+        ca: fs.readFileSync(path.join(__dirname, 'ca.pem')),
+        rejectUnauthorized: true
+    }
 });
 
 // Quick check on startup so connection issues fail loudly and early

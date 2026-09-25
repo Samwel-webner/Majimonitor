@@ -58,4 +58,16 @@ async function findUserByIdWithPassword(id) {
     return rows[0] || null;
 }
 
-module.exports = { findUserByEmail, findUserById, createUser, getAllUsers, deleteUser, setResetToken, findUserByResetToken, updatePasswordAndClearToken, findUserByIdWithPassword };
+async function savePushToken(userId, pushToken) {
+    await db.query('UPDATE users SET push_token = ? WHERE id = ?', [pushToken, userId]);
+    return { success: true };
+}
+
+async function getAdminPushTokens() {
+    const [rows] = await db.query(
+        `SELECT push_token FROM users WHERE role = 'admin' AND push_token IS NOT NULL`
+    );
+    return rows.map(r => r.push_token);
+}
+
+module.exports = { findUserByEmail, findUserById, createUser, getAllUsers, deleteUser, setResetToken, findUserByResetToken, updatePasswordAndClearToken, findUserByIdWithPassword, savePushToken, getAdminPushTokens };

@@ -10,5 +10,6 @@ router.delete('/users/:id', requireAuth, requireAdmin, authController.deleteUser
 router.post('/forgot-password', authController.forgotPassword);
 router.post('/reset-password', authController.resetPassword);
 router.patch('/change-password', requireAuth, authController.changePassword);
+router.patch('/push-token', requireAuth, authController.savePushToken);
 
 module.exports = router;

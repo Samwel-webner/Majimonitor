@@ -159,4 +159,18 @@ async function changePassword(req, res) {
     }
 }
 
-module.exports = { register, login, listUsers, deleteUser, forgotPassword, resetPassword, changePassword };
+async function savePushToken(req, res) {
+    try {
+        const { pushToken } = req.body;
+        if (!pushToken) {
+            return res.status(400).json({ error: 'pushToken is required' });
+        }
+        await userModel.savePushToken(req.user.id, pushToken);
+        return res.json({ message: 'Push token saved' });
+    } catch (err) {
+        console.error('Error saving push token:', err);
+        return res.status(500).json({ error: 'Failed to save push token' });
+    }
+}
+
+module.exports = { register, login, listUsers, deleteUser, forgotPassword, resetPassword, changePassword, savePushToken };
