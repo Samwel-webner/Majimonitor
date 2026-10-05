@@ -5,6 +5,10 @@ const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:5000/api';
 const INTERVAL_MS = Number(process.env.INTERVAL_MS) || 10000;
 const EVENT_PROBABILITY = Number(process.env.EVENT_PROBABILITY) || 0.08;
 
+// Flow Rate and Water Pressure are simulated by pipe-test.js scenarios, not here.
+// Random values for them would break the upstream/downstream pipe diagnosis.
+const PIPE_PARAMETERS = ['Flow Rate', 'Water Pressure'];
+
 const state = {};
 
 function randomInRange(min, max) {
@@ -28,7 +32,7 @@ function nextValue(siteId, parameter) {
 
     if (!state[key]) {
         state[key] = {
-            value: (Number(safe_min) + Number(safe_max)) / 2,
+            value: (safe_min + safe_max) / 2,
             eventTicksRemaining: 0,
             eventZone: null
         };
@@ -55,9 +59,9 @@ function nextValue(siteId, parameter) {
         return Number(s.value.toFixed(3));
     }
 
-    const stepSize = (Number(safe_max) - Number(safe_min)) * 0.05;
+    const stepSize = (safe_max - safe_min) * 0.05;
     let candidate = s.value + randomInRange(-stepSize, stepSize);
-    candidate = clamp(candidate, Number(safe_min), Number(safe_max));
+    candidate = clamp(candidate, safe_min, safe_max);
 
     if (Math.random() < EVENT_PROBABILITY) {
         s.eventZone = Math.random() < 0.3 ? 'critical' : 'warning';
@@ -75,7 +79,11 @@ async function fetchSitesAndParameters() {
     const parametersRes = await axios.get(`${API_BASE_URL}/parameters`);
 
     const activeSites = sitesRes.data.filter(site => site.status === 'active');
-    return { sites: activeSites, parameters: parametersRes.data };
+    const waterQualityParameters = parametersRes.data.filter(
+        p => !PIPE_PARAMETERS.includes(p.name)
+    );
+
+    return { sites: activeSites, parameters: waterQualityParameters };
 }
 
 async function submitReading(site, parameter, value) {

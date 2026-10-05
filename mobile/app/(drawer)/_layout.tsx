@@ -15,6 +15,7 @@ type NavItem = {
 const navItems: NavItem[] = [
   { name: 'index', title: 'Home', icon: 'house.fill' },
   { name: 'Alerts', title: 'Alerts', icon: 'bell.fill' },
+  { name: 'pipes', title: 'Pipe Network', icon: 'waveform.path.ecg' },
   { name: 'filters', title: 'Water Filters', icon: 'line.3.horizontal.decrease' },
   { name: 'sensors', title: 'Sensor Unit', icon: 'sensor.fill' },
   { name: 'reports', title: 'Reports & Analytics', icon: 'chart.bar.fill' },
@@ -76,6 +77,7 @@ export default function DrawerLayout() {
       >
         <Drawer.Screen name="index" options={{ title: 'Home' }} />
         <Drawer.Screen name="Alerts" options={{ title: 'Alerts' }} />
+        <Drawer.Screen name="pipes" options={{ title: 'Pipe Network' }} />
         <Drawer.Screen name="filters" options={{ title: 'Water Filters' }} />
         <Drawer.Screen name="sensors" options={{ title: 'Sensor Unit' }} />
         <Drawer.Screen name="reports" options={{ title: 'Reports & Analytics' }} />

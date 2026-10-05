@@ -85,6 +85,7 @@ CREATE TABLE alerts (
     parameter_id INT NOT NULL,
     triggered_value DECIMAL(10, 3) NOT NULL,
     severity ENUM('warning', 'critical') NOT NULL,
+        diagnosis VARCHAR(255) NULL,
     status ENUM('active', 'acknowledged', 'resolved') NOT NULL DEFAULT 'active',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     resolved_at TIMESTAMP NULL,
@@ -120,3 +121,42 @@ INSERT INTO parameters (name, unit, safe_min, safe_max, warning_min, warning_max
 ('Temperature', '°C', 15, 25, 10, 30),
 ('Conductivity', 'µS/cm', 0, 800, 0, 1500),
 ('Dissolved Oxygen', 'mg/L', 5, 14, 3, 16);
+
+INSERT INTO parameters (name, unit, safe_min, safe_max, warning_min, warning_max) VALUES
+('Water Pressure', 'bar', 1.5, 6.0, 0.5, 8.0),
+('Flow Rate', 'L/min', 20, 200, 5, 300);
+
+-- ------------------------------------------------------------
+-- PIPE SECTIONS
+-- A pipe section joins two sensor stations (sites). Comparing
+-- upstream vs downstream flow/pressure is how leaks, bursts
+-- and blockages are detected. condition_status holds the
+-- current diagnosis and drives the 3D diagram colours.
+-- ------------------------------------------------------------
+CREATE TABLE pipe_sections (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(150) NOT NULL,
+    upstream_site_id INT NOT NULL,
+    downstream_site_id INT NOT NULL,
+    length_m DECIMAL(8, 2) NOT NULL DEFAULT 100,
+    condition_status ENUM('normal', 'low_pressure', 'high_pressure', 'leak', 'burst', 'blockage', 'no_supply')
+        NOT NULL DEFAULT 'normal',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (upstream_site_id) REFERENCES sites(id) ON DELETE CASCADE,
+    FOREIGN KEY (downstream_site_id) REFERENCES sites(id) ON DELETE CASCADE
+);
+
+INSERT INTO pipe_sections (name, upstream_site_id, downstream_site_id, length_m)
+SELECT 'Intake to Makongeni', u.id, d.id, 800
+FROM sites u, sites d
+WHERE u.name = 'Thika Falls Intake' AND d.name = 'Makongeni Community Point';
+
+INSERT INTO pipe_sections (name, upstream_site_id, downstream_site_id, length_m)
+SELECT 'Makongeni to Chania Bridge', u.id, d.id, 600
+FROM sites u, sites d
+WHERE u.name = 'Makongeni Community Point' AND d.name = 'Chania Bridge Station';
+
+INSERT INTO pipe_sections (name, upstream_site_id, downstream_site_id, length_m)
+SELECT 'Chania Bridge to Athi Junction', u.id, d.id, 700
+FROM sites u, sites d
+WHERE u.name = 'Chania Bridge Station' AND d.name = 'Athi River Junction';

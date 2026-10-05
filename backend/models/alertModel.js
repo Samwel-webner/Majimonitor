@@ -1,10 +1,10 @@
 const db = require('../config/db');
 
-async function createAlert({ reading_id, site_id, parameter_id, triggered_value, severity }) {
+async function createAlert({ reading_id, site_id, parameter_id, triggered_value, severity, diagnosis = null }) {
     const [result] = await db.query(
-        `INSERT INTO alerts (reading_id, site_id, parameter_id, triggered_value, severity, status)
-         VALUES (?, ?, ?, ?, ?, 'active')`,
-        [reading_id, site_id, parameter_id, triggered_value, severity]
+        `INSERT INTO alerts (reading_id, site_id, parameter_id, triggered_value, severity, diagnosis, status)
+         VALUES (?, ?, ?, ?, ?, ?, 'active')`,
+        [reading_id, site_id, parameter_id, triggered_value, severity, diagnosis]
     );
     return getAlertById(result.insertId);
 }

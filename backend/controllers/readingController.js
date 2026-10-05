@@ -2,8 +2,10 @@ const readingModel = require('../models/readingModel');
 const parameterModel = require('../models/parameterModel');
 const alertModel = require('../models/alertModel');
 const siteModel = require('../models/siteModel');
+const userModel = require('../models/userModel');
 const { sendAlertEmail } = require('../services/emailService');
 const { sendCriticalAlertPush } = require('../services/pushService');
+const { runDiagnosis } = require('../services/diagnosisService');
 
 async function submitReading(req, res) {
     try {
@@ -21,6 +23,7 @@ async function submitReading(req, res) {
         const reading = await readingModel.createReading(site_id, parameter_id, value);
         const zone = parameterModel.classifyValue(parameter, value);
 
+        // Threshold alert: raised whenever a reading leaves its safe band
         let alert = null;
         if (zone !== 'safe') {
             alert = await alertModel.createAlert({
@@ -32,29 +35,41 @@ async function submitReading(req, res) {
             });
 
             if (zone === 'critical') {
-    const site = await siteModel.getSiteById(site_id);
-    sendAlertEmail({
-        siteName: site.name,
-        parameterName: parameter.name,
-        value,
-        unit: parameter.unit,
-        severity: zone
-    });
+                const site = await siteModel.getSiteById(site_id);
 
-    const adminTokens = await userModel.getAdminPushTokens();
-    adminTokens.forEach(pushToken => {
-        sendCriticalAlertPush({
-            pushToken,
-            siteName: site.name,
-            parameterName: parameter.name,
-            value,
-            unit: parameter.unit,
-        });
-    });
-}
+                sendAlertEmail({
+                    siteName: site.name,
+                    parameterName: parameter.name,
+                    value,
+                    unit: parameter.unit,
+                    severity: zone
+                });
+
+                const adminTokens = await userModel.getAdminPushTokens();
+                adminTokens.forEach(pushToken => {
+                    sendCriticalAlertPush({
+                        pushToken,
+                        siteName: site.name,
+                        parameterName: parameter.name,
+                        value,
+                        unit: parameter.unit
+                    });
+                });
+            }
         }
 
-        return res.status(201).json({ reading, zone, alert });
+        // Pipe diagnosis: only flow and pressure readings are relevant.
+        // Wrapped separately so a diagnosis bug can never fail a normal reading.
+        let diagnosis = [];
+        if (parameter.name === 'Flow Rate' || parameter.name === 'Water Pressure') {
+            try {
+                diagnosis = await runDiagnosis({ site_id, reading_id: reading.id, parameter_id, value });
+            } catch (diagErr) {
+                console.error('Diagnosis failed:', diagErr);
+            }
+        }
+
+        return res.status(201).json({ reading, zone, alert, diagnosis });
     } catch (err) {
         console.error('Error submitting reading:', err);
         return res.status(500).json({ error: 'Failed to submit reading' });

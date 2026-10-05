@@ -48,7 +48,8 @@ export default function AlertsScreen() {
     }
   }, []);
 
-  useEffect(() => {
+    useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadAlerts();
   }, [loadAlerts]);
 

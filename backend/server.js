@@ -8,6 +8,7 @@ const alertsRoutes = require('./routes/alerts');
 const parametersRoutes = require('./routes/parameters');
 const authRoutes = require('./routes/auth');
 const filtersRoutes = require('./routes/filters');
+const pipesRoutes = require('./routes/pipes');
 
 const app = express();
 
@@ -29,6 +30,7 @@ app.use('/api/alerts', alertsRoutes);
 app.use('/api/parameters', parametersRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/filters', filtersRoutes);
+app.use('/api/pipes', pipesRoutes);
 
 app.use((req, res) => {
     res.status(404).json({ error: 'Route not found' });
