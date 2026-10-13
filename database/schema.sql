@@ -17,7 +17,11 @@ CREATE TABLE users (
     email VARCHAR(150) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
     role ENUM('admin', 'field_officer') NOT NULL DEFAULT 'field_officer',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    gender VARCHAR(20) NULL,
+    push_token VARCHAR(255) NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    reset_token VARCHAR(255) NULL,
+    reset_token_expires DATETIME NULL
 );
 
 -- ------------------------------------------------------------
