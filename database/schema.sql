@@ -107,8 +107,8 @@ CREATE TABLE alerts (
 
 -- Default admin user (password: "admin123" — hash this properly in app, this is placeholder)
 INSERT INTO users (name, email, password_hash, role) VALUES
-('System Admin', 'admin@thiwasco.co.ke', '$2b$10$placeholderHashReplaceOnFirstRun', 'admin'),
-('Field Officer - Jane Wanjiru', 'jwanjiru@thiwasco.co.ke', '$2b$10$placeholderHashReplaceOnFirstRun', 'field_officer');
+('System Admin', 'technusmbugua@gmail.com', '$2b$10$placeholderHashReplaceOnFirstRun', 'admin'),
+('Field Officer - Jane Wanjiru', 'samwelgichia5@gmail.com', '$2b$10$placeholderHashReplaceOnFirstRun', 'field_officer');
 
 -- Sample monitoring sites along Thika River basin
 INSERT INTO sites (name, location_description, latitude, longitude, river_section, assigned_officer_id, status) VALUES
