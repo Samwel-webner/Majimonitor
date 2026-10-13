@@ -6,12 +6,19 @@ import {
   ActivityIndicator,
   StyleSheet,
   RefreshControl,
+  Modal,
+  TouchableOpacity,
 } from 'react-native';
 import { useFocusEffect } from 'expo-router';
+import { WebView } from 'react-native-webview';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { API_BASE_URL } from '../../constants/api';
 import ScreenBackground from '../../components/ScreenBackground';
 
 const REFRESH_MS = 30000; // the backend answers slowly, so don't refresh too often
+
+// Full-screen 3D page hosted on the Render static site (frontend/pipes3d.html)
+const PIPES_3D_URL = 'https://majimonitor-frontend.onrender.com/pipes3d.html';
 
 type Station = {
   site_id: number;
@@ -92,6 +99,11 @@ export default function PipesScreen() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState('');
 
+  // 3D view window
+  const [show3d, setShow3d] = useState(false);
+  const [webError, setWebError] = useState(false);
+  const [webKey, setWebKey] = useState(0); // changing this reloads the WebView
+
   const loadPipes = useCallback(async () => {
     try {
       const res = await fetch(`${API_BASE_URL}/api/pipes`);
@@ -120,6 +132,16 @@ export default function PipesScreen() {
     loadPipes();
   }
 
+  function open3d() {
+    setWebError(false);
+    setShow3d(true);
+  }
+
+  function retry3d() {
+    setWebError(false);
+    setWebKey((k) => k + 1);
+  }
+
   if (isLoading) {
     return (
       <View style={styles.center}>
@@ -145,6 +167,10 @@ export default function PipesScreen() {
           <Text style={styles.summaryText}>{summary}</Text>
         </View>
       ) : null}
+
+      <TouchableOpacity style={styles.view3dButton} onPress={open3d}>
+        <Text style={styles.view3dText}>Open 3D view</Text>
+      </TouchableOpacity>
 
       {error ? <Text style={styles.error}>{error}</Text> : null}
 
@@ -197,6 +223,52 @@ export default function PipesScreen() {
           );
         }}
       />
+
+      {/* Full-screen 3D view: the hosted web page shown inside the app */}
+      <Modal
+        visible={show3d}
+        animationType="slide"
+        onRequestClose={() => setShow3d(false)}
+        statusBarTranslucent
+      >
+        <SafeAreaProvider>
+          <SafeAreaView style={styles.modal} edges={['top', 'bottom']}>
+            <View style={styles.modalBar}>
+              <Text style={styles.modalTitle}>3D Pipe View</Text>
+              <TouchableOpacity style={styles.closeButton} onPress={() => setShow3d(false)}>
+                <Text style={styles.closeText}>Close</Text>
+              </TouchableOpacity>
+            </View>
+
+            {webError ? (
+              <View style={styles.webCenter}>
+                <Text style={styles.webErrorText}>
+                  Could not load the 3D view. Check your internet connection and try again.
+                </Text>
+                <TouchableOpacity style={styles.retryButton} onPress={retry3d}>
+                  <Text style={styles.closeText}>Try again</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <WebView
+                key={webKey}
+                source={{ uri: PIPES_3D_URL }}
+                style={styles.webview}
+                javaScriptEnabled
+                domStorageEnabled
+                startInLoadingState
+                renderLoading={() => (
+                  <View style={[styles.webCenter, StyleSheet.absoluteFill]}>
+                    <ActivityIndicator size="large" color="#fff" />
+                  </View>
+                )}
+                onError={() => setWebError(true)}
+                onHttpError={() => setWebError(true)}
+              />
+            )}
+          </SafeAreaView>
+        </SafeAreaProvider>
+      </Modal>
     </ScreenBackground>
   );
 }
@@ -214,6 +286,15 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   summaryText: { fontSize: 13, fontWeight: '600', color: '#1f2937' },
+  view3dButton: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#0a7ea4',
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    marginBottom: 12,
+  },
+  view3dText: { color: '#fff', fontSize: 14, fontWeight: '600' },
   error: { color: '#d32f2f', marginBottom: 8 },
   empty: { textAlign: 'center', color: '#888', marginTop: 40 },
   card: {
@@ -248,4 +329,29 @@ const styles = StyleSheet.create({
   adviceTitle: { fontSize: 13, fontWeight: '700', color: '#1f2937' },
   adviceText: { fontSize: 13, color: '#374151', marginTop: 4 },
   adviceNote: { fontSize: 11, color: '#6b7280', marginTop: 6 },
+  modal: { flex: 1, backgroundColor: '#0f172a' },
+  modalBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
+  modalTitle: { color: '#fff', fontSize: 18, fontWeight: '600' },
+  closeButton: {
+    backgroundColor: 'rgba(148, 163, 184, 0.3)',
+    borderRadius: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+  },
+  closeText: { color: '#fff', fontSize: 14, fontWeight: '600' },
+  webview: { flex: 1, backgroundColor: '#0f172a' },
+  webCenter: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 },
+  webErrorText: { color: '#fff', fontSize: 15, textAlign: 'center', marginBottom: 16 },
+  retryButton: {
+    backgroundColor: '#0a7ea4',
+    borderRadius: 8,
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+  },
 });
