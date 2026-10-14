@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "352823401805",
+    "project_id": "majimonitor",
+    "storage_bucket": "majimonitor.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:352823401805:android:c34e0911bf4ff6a1d6eb04",
+        "android_client_info": {
+          "package_name": "com.samwelz.majimonitor"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAHF-ry5Q-LRys9iD2rcszY1S7L8sCIC2w"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
