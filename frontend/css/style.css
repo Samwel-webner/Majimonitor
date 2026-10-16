@@ -879,3 +879,38 @@ button:hover {
 .help-step-number.safe-num { background: #E5EDE3; color: #4C7A5D; }
 .help-step-number.warning-num { background: #F3E9D3; color: #A8792A; }
 .help-step-number.critical-num { background: #F3DEDA; color: #A63D3D; }
+
+.password-field {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 16px;
+}
+.password-field input {
+    flex: 0 0 100%;
+    width: 100% !important;
+    margin: 0 !important;
+    box-sizing: border-box;
+    padding-right: 44px;
+}
+.password-field .toggle-password {
+    flex: 0 0 32px;
+    width: 32px !important;
+    height: 32px !important;
+    margin: 0 0 0 -40px !important;
+    padding: 0 !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    border-radius: 6px;
+    color: #6b7674;
+    cursor: pointer;
+}
+.password-field .toggle-password:hover { color: var(--color-river, #2F5D62); }
+.password-field .toggle-password:focus-visible {
+    outline: 2px solid var(--color-river, #2F5D62);
+    outline-offset: 2px;
+}

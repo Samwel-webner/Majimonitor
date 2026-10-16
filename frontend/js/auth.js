@@ -85,3 +85,11 @@ function requireAdminPage() {
         window.location.href = 'index.html';
     }
 }
+
+document.addEventListener('DOMContentLoaded', function () {
+    var user = getCurrentUser();
+    if (user && user.role === 'admin') return;
+    document.querySelectorAll('[data-admin-only]').forEach(function (el) {
+        el.style.display = 'none';
+    });
+});
