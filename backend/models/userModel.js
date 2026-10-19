@@ -7,12 +7,12 @@ async function findUserByEmail(email) {
 
 
 async function findUserById(id) {
-    const [rows] = await db.query('SELECT id, name, email, role, gender, created_at FROM users WHERE id = ?', [id]);
+    const [rows] = await db.query('SELECT id, name, email, role, gender, avatar, created_at FROM users WHERE id = ?', [id]);
     return rows[0] || null;
 }
 
 async function getAllUsers() {
-    const [rows] = await db.query('SELECT id, name, email, role, gender, created_at FROM users ORDER BY name ASC');
+    const [rows] = await db.query('SELECT id, name, email, role, gender, avatar, created_at FROM users ORDER BY name ASC');
     return rows;
 }
 
@@ -63,6 +63,11 @@ async function savePushToken(userId, pushToken) {
     return { success: true };
 }
 
+async function updateAvatar(userId, avatar) {
+    await db.query('UPDATE users SET avatar = ? WHERE id = ?', [avatar, userId]);
+    return { success: true };
+}
+
 async function getAdminPushTokens() {
     const [rows] = await db.query(
         `SELECT push_token FROM users WHERE role = 'admin' AND push_token IS NOT NULL`
@@ -70,4 +75,4 @@ async function getAdminPushTokens() {
     return rows.map(r => r.push_token);
 }
 
-module.exports = { findUserByEmail, findUserById, createUser, getAllUsers, deleteUser, setResetToken, findUserByResetToken, updatePasswordAndClearToken, findUserByIdWithPassword, savePushToken, getAdminPushTokens };
+module.exports = { findUserByEmail, findUserById, createUser, getAllUsers, deleteUser, setResetToken, findUserByResetToken, updatePasswordAndClearToken, findUserByIdWithPassword, savePushToken, updateAvatar, getAdminPushTokens };

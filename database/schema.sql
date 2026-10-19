@@ -18,6 +18,7 @@ CREATE TABLE users (
     password_hash VARCHAR(255) NOT NULL,
     role ENUM('admin', 'field_officer') NOT NULL DEFAULT 'field_officer',
     gender VARCHAR(20) NULL,
+        avatar VARCHAR(20) NULL,
     push_token VARCHAR(255) NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     reset_token VARCHAR(255) NULL,
@@ -94,10 +95,13 @@ CREATE TABLE alerts (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     resolved_at TIMESTAMP NULL,
     resolved_by INT NULL,
+    acknowledged_by INT NULL,
+    acknowledged_at TIMESTAMP NULL,
     FOREIGN KEY (reading_id) REFERENCES readings(id) ON DELETE SET NULL,
     FOREIGN KEY (site_id) REFERENCES sites(id) ON DELETE CASCADE,
     FOREIGN KEY (parameter_id) REFERENCES parameters(id) ON DELETE CASCADE,
     FOREIGN KEY (resolved_by) REFERENCES users(id) ON DELETE SET NULL,
+     FOREIGN KEY (acknowledged_by) REFERENCES users(id) ON DELETE SET NULL,
     INDEX idx_status (status)
 );
 

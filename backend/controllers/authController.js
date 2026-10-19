@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const userModel = require('../models/userModel');
 const { sendPasswordResetEmail } = require('../services/emailService');
+const { AVATARS } = require('../config/avatars');
 
 async function register(req, res) {
     try {
@@ -53,7 +54,7 @@ async function login(req, res) {
 
         return res.json({
             token,
-            user: { id: user.id, name: user.name, email: user.email, role: user.role, gender: user.gender }
+            user: { id: user.id, name: user.name, email: user.email, role: user.role, gender: user.gender, avatar: user.avatar }
         });
     } catch (err) {
         console.error('Error logging in:', err);
@@ -173,4 +174,21 @@ async function savePushToken(req, res) {
     }
 }
 
-module.exports = { register, login, listUsers, deleteUser, forgotPassword, resetPassword, changePassword, savePushToken };
+async function updateAvatar(req, res) {
+    try {
+        const { avatar } = req.body;
+
+        // null means "go back to the automatic animal"
+        if (avatar !== null && !AVATARS.includes(avatar)) {
+            return res.status(400).json({ error: 'Unknown avatar' });
+        }
+
+        await userModel.updateAvatar(req.user.id, avatar);
+        return res.json({ avatar });
+    } catch (err) {
+        console.error('Error saving avatar:', err);
+        return res.status(500).json({ error: 'Failed to save avatar' });
+    }
+}
+
+module.exports = { register, login, listUsers, deleteUser, forgotPassword, resetPassword, changePassword, savePushToken, updateAvatar };

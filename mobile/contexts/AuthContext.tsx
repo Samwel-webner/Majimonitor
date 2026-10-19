@@ -9,6 +9,7 @@ type User = {
   email: string;
   role: string;
   gender?: string;
+  avatar?: string | null;
 };
 
 type AuthContextType = {
@@ -17,6 +18,7 @@ type AuthContextType = {
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  updateUser: (changes: Partial<User>) => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -71,7 +73,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       })
       .catch((err) => console.error('Push registration failed:', err));
-}
+  }
 
   async function logout() {
     await clearAuth();
@@ -79,8 +81,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
   }
 
+  async function updateUser(changes: Partial<User>) {
+    if (!user || !token) return;
+    const updated = { ...user, ...changes };
+    await saveAuth(token, updated);
+    setUser(updated);
+  }
+
   return (
-    <AuthContext.Provider value={{ token, user, isLoading, login, logout }}>
+    <AuthContext.Provider value={{ token, user, isLoading, login, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

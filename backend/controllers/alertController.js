@@ -13,6 +13,7 @@ async function listAlerts(req, res) {
 }
 
 // PATCH /api/alerts/:id  { status: 'acknowledged' | 'resolved', resolved_by: userId }
+// PATCH /api/alerts/:id  { status: 'active' | 'acknowledged' | 'resolved' }
 async function updateAlert(req, res) {
     try {
         const { status } = req.body;
@@ -20,8 +21,8 @@ async function updateAlert(req, res) {
         if (!valid.includes(status)) {
             return res.status(400).json({ error: `status must be one of: ${valid.join(', ')}` });
         }
-        const resolved_by = status === 'resolved' ? req.user.id : null;
-        const alert = await alertModel.updateAlertStatus(req.params.id, status, resolved_by);
+        const userId = (status === 'resolved' || status === 'acknowledged') ? req.user.id : null;
+        const alert = await alertModel.updateAlertStatus(req.params.id, status, userId);
         return res.json(alert);
     } catch (err) {
         console.error('Error updating alert:', err);

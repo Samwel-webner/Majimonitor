@@ -13,6 +13,7 @@ import { API_BASE_URL } from '../../constants/api';
 import { badgeColor } from '../../utils/siteStatus';
 import { useAuth } from '../../contexts/AuthContext';
 import ScreenBackground from '../../components/ScreenBackground';
+import Avatar from '../../components/Avatar';
 
 type AlertItem = {
   id: number;
@@ -25,10 +26,13 @@ type AlertItem = {
   site_name: string;
   parameter_name: string;
   unit: string;
+  acknowledged_by: number | null;
+  acknowledged_by_name: string | null;
+  acknowledged_by_avatar: string | null;
 };
 
 export default function AlertsScreen() {
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const [alerts, setAlerts] = useState<AlertItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -36,7 +40,7 @@ export default function AlertsScreen() {
 
   const loadAlerts = useCallback(async () => {
     try {
-      const res = await fetch(`${API_BASE_URL}/api/alerts?status=active`);
+      const res = await fetch(`${API_BASE_URL}/api/alerts?status=active,acknowledged`);
       if (!res.ok) throw new Error('Failed to load alerts');
       setAlerts(await res.json());
       setError('');
@@ -48,7 +52,7 @@ export default function AlertsScreen() {
     }
   }, []);
 
-    useEffect(() => {
+  useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     loadAlerts();
   }, [loadAlerts]);
@@ -74,7 +78,23 @@ export default function AlertsScreen() {
         throw new Error(data.error || 'Failed to update alert');
       }
 
-      setAlerts((prev) => prev.filter((a) => a.id !== id));
+      if (status === 'resolved') {
+        setAlerts((prev) => prev.filter((a) => a.id !== id));
+      } else {
+        setAlerts((prev) =>
+          prev.map((a) =>
+            a.id === id
+              ? {
+                  ...a,
+                  status: 'acknowledged' as const,
+                  acknowledged_by: user?.id ?? null,
+                  acknowledged_by_name: user?.name ?? null,
+                  acknowledged_by_avatar: user?.avatar ?? null,
+                }
+              : a
+          )
+        );
+      }
     } catch (err: any) {
       RNAlert.alert('Error', err.message || 'Could not update alert');
     }
@@ -90,7 +110,7 @@ export default function AlertsScreen() {
 
   return (
     <ScreenBackground style={styles.container}>
-      <Text style={styles.header}>Active Alerts</Text>
+      <Text style={styles.header}>Open Alerts</Text>
 
       {error ? <Text style={styles.error}>{error}</Text> : null}
 
@@ -101,10 +121,11 @@ export default function AlertsScreen() {
           <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
         }
         ListEmptyComponent={
-          <Text style={styles.empty}>No active alerts right now.</Text>
+          <Text style={styles.empty}>No open alerts right now.</Text>
         }
         renderItem={({ item }) => {
           const badge = item.severity === 'critical' ? 'Critical' : 'Warning';
+          const isMine = user != null && item.acknowledged_by === user.id;
           return (
             <View style={styles.card}>
               <View style={styles.cardHeader}>
@@ -120,13 +141,30 @@ export default function AlertsScreen() {
                 {new Date(item.created_at).toLocaleString()}
               </Text>
 
+              {item.status === 'acknowledged' ? (
+                <View style={styles.checkingRow}>
+                  <Avatar
+                    userId={item.acknowledged_by}
+                    avatar={item.acknowledged_by_avatar}
+                    size={24}
+                  />
+                  <Text style={styles.checkingText}>
+                    {isMine
+                      ? "You're checking this"
+                      : `Being checked by ${item.acknowledged_by_name ?? 'an officer'}`}
+                  </Text>
+                </View>
+              ) : null}
+
               <View style={styles.actions}>
-                <TouchableOpacity
-                  style={styles.actionButton}
-                  onPress={() => updateAlertStatus(item.id, 'acknowledged')}
-                >
-                  <Text style={styles.actionText}>Acknowledge</Text>
-                </TouchableOpacity>
+                {item.status === 'active' ? (
+                  <TouchableOpacity
+                    style={styles.actionButton}
+                    onPress={() => updateAlertStatus(item.id, 'acknowledged')}
+                  >
+                    <Text style={styles.actionText}>Acknowledge</Text>
+                  </TouchableOpacity>
+                ) : null}
                 <TouchableOpacity
                   style={[styles.actionButton, styles.resolveButton]}
                   onPress={() => updateAlertStatus(item.id, 'resolved')}
@@ -166,6 +204,17 @@ const styles = StyleSheet.create({
   siteName: { fontSize: 16, fontWeight: '600' },
   detail: { fontSize: 14, color: '#333', marginTop: 6 },
   time: { fontSize: 12, color: '#999', marginTop: 4 },
+  checkingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    marginTop: 8,
+    paddingVertical: 6,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+    backgroundColor: '#DCE9E8',
+  },
+  checkingText: { fontSize: 13, color: '#234649', fontWeight: '500', marginLeft: 8 },
   badge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
   badgeText: { color: '#fff', fontSize: 12, fontWeight: '600' },
   actions: { flexDirection: 'row', marginTop: 12, gap: 8 },

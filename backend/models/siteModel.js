@@ -1,9 +1,9 @@
 const db = require('../config/db');
 
-// Get all sites, with assigned officer's name joined in
+// Get all sites, with assigned officer's name and avatar joined in
 async function getAllSites() {
     const [rows] = await db.query(
-        `SELECT s.*, u.name AS assigned_officer_name
+        `SELECT s.*, u.name AS assigned_officer_name, u.avatar AS assigned_officer_avatar
          FROM sites s
          LEFT JOIN users u ON s.assigned_officer_id = u.id
          ORDER BY s.name ASC`
@@ -13,7 +13,7 @@ async function getAllSites() {
 
 async function getSiteById(id) {
     const [rows] = await db.query(
-        `SELECT s.*, u.name AS assigned_officer_name
+        `SELECT s.*, u.name AS assigned_officer_name, u.avatar AS assigned_officer_avatar
          FROM sites s
          LEFT JOIN users u ON s.assigned_officer_id = u.id
          WHERE s.id = ?`,
