@@ -11,5 +11,6 @@ router.post('/forgot-password', authController.forgotPassword);
 router.post('/reset-password', authController.resetPassword);
 router.patch('/change-password', requireAuth, authController.changePassword);
 router.patch('/push-token', requireAuth, authController.savePushToken);
+router.patch('/avatar', requireAuth, authController.updateAvatar);
 
 module.exports = router;
