@@ -914,3 +914,13 @@ button:hover {
     outline: 2px solid var(--color-river, #2F5D62);
     outline-offset: 2px;
 }
+
+.avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border-radius: 50%;
+    line-height: 1;
+    user-select: none;
+}

@@ -12,5 +12,6 @@ router.post('/reset-password', authController.resetPassword);
 router.patch('/change-password', requireAuth, authController.changePassword);
 router.patch('/push-token', requireAuth, authController.savePushToken);
 router.patch('/avatar', requireAuth, authController.updateAvatar);
+router.get('/officers/summary', requireAuth, requireAdmin, authController.officersSummary);
 
 module.exports = router;

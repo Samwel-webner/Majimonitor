@@ -27,15 +27,13 @@ type Site = {
 
 export default function DashboardScreen() {
   const [sites, setSites] = useState<Site[]>([]);
-  const [activeAlerts, setActiveAlerts] = useState<Alert[]>([]);
+  const [openAlerts, setOpenAlerts] = useState<Alert[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const [error, setError] = useState('');
   const router = useRouter();
   const { user } = useAuth();
-
-  const firstName = user?.name?.split(' ')[0] ?? '';
 
   useEffect(() => {
     let cancelled = false;
@@ -44,7 +42,7 @@ export default function DashboardScreen() {
       try {
         const [sitesRes, alertsRes] = await Promise.all([
           fetch(`${API_BASE_URL}/api/sites`),
-          fetch(`${API_BASE_URL}/api/alerts?status=active`),
+          fetch(`${API_BASE_URL}/api/alerts?status=active,acknowledged`),
         ]);
 
         if (!sitesRes.ok || !alertsRes.ok) {
@@ -56,7 +54,7 @@ export default function DashboardScreen() {
 
         if (cancelled) return;
         setSites(sitesData);
-        setActiveAlerts(alertsData);
+        setOpenAlerts(alertsData);
         setError('');
       } catch (err: any) {
         if (!cancelled) setError(err.message || 'Something went wrong');
@@ -91,7 +89,7 @@ export default function DashboardScreen() {
     <ScreenBackground style={styles.container}>
       <View style={styles.greetingRow}>
         <Avatar userId={user?.id} avatar={user?.avatar} size={44} />
-        <Text style={styles.greeting}>Hi, {firstName}</Text>
+        <Text style={styles.greeting}>Hi, {user?.name}</Text>
       </View>
 
       <Text style={styles.header}>Monitoring Sites</Text>
@@ -105,7 +103,10 @@ export default function DashboardScreen() {
           <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
         }
         renderItem={({ item }) => {
-          const badge = getSiteBadge(item.id, activeAlerts);
+          const badge = getSiteBadge(item.id, openAlerts);
+          const checkedBy = openAlerts.find(
+            (a) => a.site_id === item.id && a.status === 'acknowledged'
+          );
           return (
             <TouchableOpacity
               style={styles.card}
@@ -128,6 +129,18 @@ export default function DashboardScreen() {
                   <Text style={styles.officer}>Officer: {item.assigned_officer_name}</Text>
                 </View>
               ) : null}
+              {checkedBy ? (
+                <View style={styles.checkingRow}>
+                  <Avatar
+                    userId={checkedBy.acknowledged_by ?? null}
+                    avatar={checkedBy.acknowledged_by_avatar ?? null}
+                    size={20}
+                  />
+                  <Text style={styles.checkingText}>
+                    Being checked by {checkedBy.acknowledged_by_name ?? 'an officer'}
+                  </Text>
+                </View>
+              ) : null}
             </TouchableOpacity>
           );
         }}
@@ -140,7 +153,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, padding: 16, backgroundColor: 'transparent' },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   greetingRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
-  greeting: { fontSize: 18, fontWeight: '600', marginLeft: 12 },
+  greeting: { fontSize: 18, fontWeight: '600', marginLeft: 12, flexShrink: 1 },
   header: { fontSize: 22, fontWeight: 'bold', marginBottom: 12 },
   error: { color: '#d32f2f', marginBottom: 8 },
   card: {
@@ -162,6 +175,17 @@ const styles = StyleSheet.create({
   location: { fontSize: 13, color: '#666', marginTop: 4 },
   officerRow: { flexDirection: 'row', alignItems: 'center', marginTop: 6 },
   officer: { fontSize: 12, color: '#999', marginLeft: 6 },
+  checkingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    marginTop: 8,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+    backgroundColor: '#DCE9E8',
+  },
+  checkingText: { fontSize: 12, color: '#234649', fontWeight: '500', marginLeft: 6 },
   badge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
   badgeText: { color: '#fff', fontSize: 12, fontWeight: '600' },
 });

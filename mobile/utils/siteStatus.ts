@@ -2,6 +2,9 @@ export type Alert = {
   site_id: number;
   severity: 'warning' | 'critical';
   status: 'active' | 'acknowledged' | 'resolved';
+  acknowledged_by?: number | null;
+  acknowledged_by_name?: string | null;
+  acknowledged_by_avatar?: string | null;
 };
 
 export type SiteBadge = 'Safe' | 'Warning' | 'Critical';

@@ -191,4 +191,14 @@ async function updateAvatar(req, res) {
     }
 }
 
-module.exports = { register, login, listUsers, deleteUser, forgotPassword, resetPassword, changePassword, savePushToken, updateAvatar };
+async function officersSummary(req, res) {
+    try {
+        const summary = await userModel.getOfficersSummary();
+        return res.json(summary);
+    } catch (err) {
+        console.error('Error building officers summary:', err);
+        return res.status(500).json({ error: 'Failed to load officers summary' });
+    }
+}
+
+module.exports = { register, login, listUsers, deleteUser, forgotPassword, resetPassword, changePassword, savePushToken, updateAvatar, officersSummary };

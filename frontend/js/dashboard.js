@@ -7,11 +7,13 @@ async function loadDashboard() {
     const hour = new Date().getHours();
     const timeGreeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
     const roleLabel = user.role === 'admin' ? 'Admin' : 'Officer';
-document.getElementById('welcome-message').textContent = `${timeGreeting}, ${roleLabel}! Welcome back. Your central portal for water quality monitoring and site diagnostics is ready.`;
-    let sites, activeAlerts;
+    document.getElementById('welcome-message').textContent = `${timeGreeting}, ${roleLabel}! Welcome back. Your central portal for water quality monitoring and site diagnostics is ready.`;
+
+    let sites, openAlerts;
     try {
         sites = await apiGet('/sites');
-        activeAlerts = await apiGet('/alerts?status=active');
+        // Acknowledged alerts are still unresolved, so they keep a site red or amber
+        openAlerts = await apiGet('/alerts?status=active,acknowledged');
     } catch (err) {
         siteGrid.innerHTML = '<p>Could not reach the backend.</p>';
         console.error(err);
@@ -19,7 +21,7 @@ document.getElementById('welcome-message').textContent = `${timeGreeting}, ${rol
     }
 
     const alertsBySite = {};
-    activeAlerts.forEach(a => {
+    openAlerts.forEach(a => {
         if (!alertsBySite[a.site_id]) alertsBySite[a.site_id] = [];
         alertsBySite[a.site_id].push(a);
     });
@@ -31,10 +33,16 @@ document.getElementById('welcome-message').textContent = `${timeGreeting}, ${rol
         return 'safe';
     }
 
+    function checkedByName(siteId) {
+        const alerts = alertsBySite[siteId] || [];
+        const acked = alerts.find(a => a.status === 'acknowledged');
+        return acked ? (acked.acknowledged_by_name || 'an officer') : null;
+    }
+
     // Stat row
     const statRow = document.getElementById('stat-row');
-    const criticalCount = activeAlerts.filter(a => a.severity === 'critical').length;
-    const warningCount = activeAlerts.filter(a => a.severity === 'warning').length;
+    const criticalCount = openAlerts.filter(a => a.severity === 'critical').length;
+    const warningCount = openAlerts.filter(a => a.severity === 'warning').length;
     const safeCount = sites.filter(s => worstSeverity(s.id) === 'safe').length;
 
     statRow.innerHTML = `
@@ -68,7 +76,7 @@ document.getElementById('welcome-message').textContent = `${timeGreeting}, ${rol
         </div>
     `;
 
-    // Alerts-per-site bar chart
+    // Open-alerts-per-site bar chart
     const siteLabels = sites.map(s => s.name);
     const siteAlertCounts = sites.map(s => (alertsBySite[s.id] || []).length);
 
@@ -78,7 +86,7 @@ document.getElementById('welcome-message').textContent = `${timeGreeting}, ${rol
         data: {
             labels: siteLabels,
             datasets: [{
-                label: 'Active Alerts',
+                label: 'Open Alerts',
                 data: siteAlertCounts,
                 backgroundColor: '#2F5D62',
                 borderRadius: 6
@@ -94,6 +102,7 @@ document.getElementById('welcome-message').textContent = `${timeGreeting}, ${rol
     // Site grid
     siteGrid.innerHTML = sites.map(site => {
         const severity = worstSeverity(site.id);
+        const checker = checkedByName(site.id);
         return `
             <a href="site.html?id=${site.id}" class="site-card">
                 <div class="site-card-top">
@@ -102,16 +111,17 @@ document.getElementById('welcome-message').textContent = `${timeGreeting}, ${rol
                 </div>
                 <p>${site.river_section || ''}</p>
                 <p>Officer: ${site.assigned_officer_name || 'Unassigned'}</p>
+                ${checker ? `<p>Being checked by ${checker}</p>` : ''}
             </a>
         `;
     }).join('');
 
     // Recent Alerts panel
     const recentAlertsEl = document.getElementById('recent-alerts');
-    const recentAlerts = activeAlerts.slice(0, 5);
+    const recentAlerts = openAlerts.slice(0, 5);
 
     if (recentAlerts.length === 0) {
-        recentAlertsEl.innerHTML = `<p class="panel-empty">No active alerts right now.</p>`;
+        recentAlertsEl.innerHTML = `<p class="panel-empty">No open alerts right now.</p>`;
     } else {
         recentAlertsEl.innerHTML = recentAlerts.map(a => `
             <a href="site.html?id=${a.site_id}" class="activity-item">
@@ -120,7 +130,7 @@ document.getElementById('welcome-message').textContent = `${timeGreeting}, ${rol
                 </div>
                 <div>
                     <div class="activity-title">${a.parameter_name} at ${a.site_name}</div>
-                    <div class="activity-meta">${Number(a.triggered_value).toFixed(2)} ${a.unit} · ${new Date(a.created_at).toLocaleTimeString()}</div>
+                    <div class="activity-meta">${Number(a.triggered_value).toFixed(2)} ${a.unit} · ${new Date(a.created_at).toLocaleTimeString()}${a.status === 'acknowledged' ? ` · Being checked by ${a.acknowledged_by_name || 'an officer'}` : ''}</div>
                 </div>
             </a>
         `).join('');

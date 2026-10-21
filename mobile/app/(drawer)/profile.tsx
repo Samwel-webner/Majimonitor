@@ -2,6 +2,7 @@ import { useState } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet, Alert, Modal, ScrollView, ActivityIndicator,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../contexts/AuthContext';
 import ScreenBackground from '../../components/ScreenBackground';
 import Avatar from '../../components/Avatar';
@@ -10,6 +11,7 @@ import { API_BASE_URL } from '../../constants/api';
 
 export default function ProfileScreen() {
   const { user, token, logout, updateUser } = useAuth();
+  const insets = useSafeAreaInsets();
   const [pickerOpen, setPickerOpen] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -81,7 +83,7 @@ export default function ProfileScreen() {
         onRequestClose={() => setPickerOpen(false)}
       >
         <View style={styles.backdrop}>
-          <View style={styles.sheet}>
+          <View style={[styles.sheet, { paddingBottom: 16 + insets.bottom }]}>
             <ScrollView>
               <Text style={styles.sheetTitle}>Choose your animal</Text>
               <View style={styles.grid}>
@@ -118,7 +120,16 @@ const styles = StyleSheet.create({
   container: { flex: 1, padding: 16, backgroundColor: 'transparent' },
   header: { fontSize: 22, fontWeight: 'bold', marginBottom: 16 },
   avatarWrap: { alignItems: 'center', marginBottom: 16 },
-  avatarHint: { fontSize: 12, color: '#555', marginTop: 8 },
+  avatarHint: {
+    fontSize: 12,
+    color: '#222',
+    marginTop: 8,
+    backgroundColor: 'rgba(255,255,255,0.85)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 10,
+    overflow: 'hidden',
+  },
   card: {
     backgroundColor: '#fff',
     borderRadius: 10,
