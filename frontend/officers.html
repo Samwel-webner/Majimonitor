@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MajiMonitor - Officer Management</title>
+<title>MajiMonitor - Officers</title>
 <link rel="stylesheet" href="css/style.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.0/feather.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -39,52 +39,71 @@
 
     <main class="main-content">
         <div class="panel">
-        <h1>Officer Management</h1>
-        <p>Assign field officers to monitoring sites</p>
+            <h1>Officers</h1>
+            <p>Who is covering which site, and what they are working on</p>
         </div>
 
-        <div class="panel">
-            <h2>Register New Officer</h2>
-            <form id="register-form">
-                <label for="reg-name">Full Name</label>
-                <input type="text" id="reg-name" required>
+        <section class="off-stats" id="off-stats" aria-label="Team summary"></section>
 
-                <label for="reg-email">Email</label>
-                <input type="email" id="reg-email" required>
+        <div class="off-layout">
+            <div class="off-main">
+                <div class="panel">
+                    <h2>Field team</h2>
+                    <div id="off-cards" class="off-cards">
+                        <p class="off-muted">Loading officers…</p>
+                    </div>
+                </div>
+            </div>
 
-                <label for="reg-password">Temporary Password</label>
-                <input type="password" id="reg-password" required>
-
-                <label for="reg-role">Role</label>
-                <select id="reg-role">
-                    <option value="field_officer">Field Officer</option>
-                    <option value="admin">Admin</option>
-                </select>
-
-                <label for="reg-gender">Gender</label>
-                <select id="reg-gender">
-                    <option value="unspecified">Prefer not to say</option>
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
-                </select>
-
-                <button type="submit">Register Officer</button>
-            </form>
-            <p id="register-error"></p>
-        </div>
-
-        <div class="panel">
-            <h2>Registered Officers</h2>
-            <div id="officers-registry">
-                <!-- populated by officers.js -->
+            <div class="off-side">
+                <div class="panel">
+                    <h2>Sites without an officer</h2>
+                    <div id="off-unassigned"></div>
+                </div>
+                <div class="panel">
+                    <h2>Recent activity</h2>
+                    <div id="off-activity"></div>
+                </div>
             </div>
         </div>
 
         <div class="panel">
-            <h2>Site Assignments</h2>
-            <div id="assignments-list">
-                <!-- populated by officers.js -->
-            </div>
+            <details id="assignments-details">
+                <summary class="off-summary">Change a site's officer</summary>
+                <div id="assignments-list"></div>
+            </details>
+        </div>
+
+        <div class="panel">
+            <details id="register-details">
+                <summary class="off-summary">Register a new officer</summary>
+                <form id="register-form">
+                    <label for="reg-name">Full Name</label>
+                    <input type="text" id="reg-name" required>
+
+                    <label for="reg-email">Email</label>
+                    <input type="email" id="reg-email" required>
+
+                    <label for="reg-password">Temporary Password</label>
+                    <input type="password" id="reg-password" required>
+
+                    <label for="reg-role">Role</label>
+                    <select id="reg-role">
+                        <option value="field_officer">Field Officer</option>
+                        <option value="admin">Admin</option>
+                    </select>
+
+                    <label for="reg-gender">Gender</label>
+                    <select id="reg-gender">
+                        <option value="unspecified">Prefer not to say</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                    </select>
+
+                    <button type="submit">Register Officer</button>
+                </form>
+                <p id="register-error"></p>
+            </details>
         </div>
     </main>
 </div>
@@ -92,7 +111,9 @@
 <script src="js/config.js"></script>
 <script src="js/auth.js"></script>
 <script src="js/api.js"></script>
+<script src="js/avatars.js"></script>
 <script src="js/sidebar.js"></script>
+<script src="js/password-toggle.js"></script>
 <script src="js/officers.js"></script>
 </body>
 </html>
