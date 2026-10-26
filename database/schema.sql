@@ -9,7 +9,9 @@ USE majimonitor;
 
 -- ------------------------------------------------------------
 -- USERS
--- THIWASCO staff who log in: admins and field officers
+-- THIWASCO staff who log in: admins and field officers.
+-- avatar stores the key of the chosen animal (e.g. 'lion');
+-- NULL means the app picks an automatic animal from the user id.
 -- ------------------------------------------------------------
 CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -18,7 +20,7 @@ CREATE TABLE users (
     password_hash VARCHAR(255) NOT NULL,
     role ENUM('admin', 'field_officer') NOT NULL DEFAULT 'field_officer',
     gender VARCHAR(20) NULL,
-        avatar VARCHAR(20) NULL,
+    avatar VARCHAR(20) NULL,
     push_token VARCHAR(255) NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     reset_token VARCHAR(255) NULL,
@@ -82,6 +84,8 @@ CREATE TABLE readings (
 -- Triggered when a reading breaches a threshold.
 -- triggered_value is a denormalized copy of the reading's value
 -- so alert history remains readable even if readings are purged.
+-- acknowledged_by / acknowledged_at record which officer is
+-- checking an alert; resolved_by / resolved_at record who closed it.
 -- ------------------------------------------------------------
 CREATE TABLE alerts (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -90,49 +94,20 @@ CREATE TABLE alerts (
     parameter_id INT NOT NULL,
     triggered_value DECIMAL(10, 3) NOT NULL,
     severity ENUM('warning', 'critical') NOT NULL,
-        diagnosis VARCHAR(255) NULL,
+    diagnosis VARCHAR(255) NULL,
     status ENUM('active', 'acknowledged', 'resolved') NOT NULL DEFAULT 'active',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    resolved_at TIMESTAMP NULL,
-    resolved_by INT NULL,
     acknowledged_by INT NULL,
     acknowledged_at TIMESTAMP NULL,
+    resolved_at TIMESTAMP NULL,
+    resolved_by INT NULL,
     FOREIGN KEY (reading_id) REFERENCES readings(id) ON DELETE SET NULL,
     FOREIGN KEY (site_id) REFERENCES sites(id) ON DELETE CASCADE,
     FOREIGN KEY (parameter_id) REFERENCES parameters(id) ON DELETE CASCADE,
+    FOREIGN KEY (acknowledged_by) REFERENCES users(id) ON DELETE SET NULL,
     FOREIGN KEY (resolved_by) REFERENCES users(id) ON DELETE SET NULL,
-     FOREIGN KEY (acknowledged_by) REFERENCES users(id) ON DELETE SET NULL,
     INDEX idx_status (status)
 );
-
--- ============================================================
--- SEED DATA
--- ============================================================
-
--- Default admin user (password: "admin123" — hash this properly in app, this is placeholder)
-INSERT INTO users (name, email, password_hash, role) VALUES
-('System Admin', 'technusmbugua@gmail.com', '$2b$10$placeholderHashReplaceOnFirstRun', 'admin'),
-('Field Officer - Jane Wanjiru', 'samwelgichia5@gmail.com', '$2b$10$placeholderHashReplaceOnFirstRun', 'field_officer');
-
--- Sample monitoring sites along Thika River basin
-INSERT INTO sites (name, location_description, latitude, longitude, river_section, assigned_officer_id, status) VALUES
-('Thika Falls Intake', 'Near Chania/Thika Falls water intake point', -1.0332, 37.0833, 'Upper Thika River', 2, 'active'),
-('Makongeni Community Point', 'Community water collection point, Makongeni ward', -1.0396, 37.0900, 'Mid Thika River', 2, 'active'),
-('Chania Bridge Station', 'Chania River confluence monitoring station', -1.0450, 37.0950, 'Chania Confluence', NULL, 'active'),
-('Athi River Junction', 'Downstream junction monitoring point', -1.0500, 37.1050, 'Lower Thika Basin', NULL, 'active');
-
--- Water quality parameters with WHO/Kenya standards-based thresholds
-INSERT INTO parameters (name, unit, safe_min, safe_max, warning_min, warning_max) VALUES
-('pH', 'pH', 6.5, 8.5, 6.0, 9.0),
-('Turbidity', 'NTU', 0, 5, 0, 10),
-('TDS', 'ppm', 0, 500, 0, 1000),
-('Temperature', '°C', 15, 25, 10, 30),
-('Conductivity', 'µS/cm', 0, 800, 0, 1500),
-('Dissolved Oxygen', 'mg/L', 5, 14, 3, 16);
-
-INSERT INTO parameters (name, unit, safe_min, safe_max, warning_min, warning_max) VALUES
-('Water Pressure', 'bar', 1.5, 6.0, 0.5, 8.0),
-('Flow Rate', 'L/min', 20, 200, 5, 300);
 
 -- ------------------------------------------------------------
 -- PIPE SECTIONS
@@ -154,6 +129,36 @@ CREATE TABLE pipe_sections (
     FOREIGN KEY (downstream_site_id) REFERENCES sites(id) ON DELETE CASCADE
 );
 
+-- ============================================================
+-- SEED DATA
+-- ============================================================
+
+-- Default users. The password hashes are placeholders; real accounts
+-- are created through the app (or the register endpoint), which hashes
+-- the password properly.
+INSERT INTO users (name, email, password_hash, role) VALUES
+('System Admin', 'technusmbugua@gmail.com', '$2b$10$placeholderHashReplaceOnFirstRun', 'admin'),
+('Field Officer - Jane Wanjiru', 'samwelgichia5@gmail.com', '$2b$10$placeholderHashReplaceOnFirstRun', 'field_officer');
+
+-- Sample monitoring sites along the Thika River basin
+INSERT INTO sites (name, location_description, latitude, longitude, river_section, assigned_officer_id, status) VALUES
+('Thika Falls Intake', 'Near Chania/Thika Falls water intake point', -1.0332, 37.0833, 'Upper Thika River', 2, 'active'),
+('Makongeni Community Point', 'Community water collection point, Makongeni ward', -1.0396, 37.0900, 'Mid Thika River', 2, 'active'),
+('Chania Bridge Station', 'Chania River confluence monitoring station', -1.0450, 37.0950, 'Chania Confluence', NULL, 'active'),
+('Athi River Junction', 'Downstream junction monitoring point', -1.0500, 37.1050, 'Lower Thika Basin', NULL, 'active');
+
+-- Water quality parameters with WHO/Kenya standards-based thresholds
+INSERT INTO parameters (name, unit, safe_min, safe_max, warning_min, warning_max) VALUES
+('pH', 'pH', 6.5, 8.5, 6.0, 9.0),
+('Turbidity', 'NTU', 0, 5, 0, 10),
+('TDS', 'ppm', 0, 500, 0, 1000),
+('Temperature', '°C', 15, 25, 10, 30),
+('Conductivity', 'µS/cm', 0, 800, 0, 1500),
+('Dissolved Oxygen', 'mg/L', 5, 14, 3, 16),
+('Water Pressure', 'bar', 1.5, 6.0, 0.5, 8.0),
+('Flow Rate', 'L/min', 20, 200, 5, 300);
+
+-- Pipe sections linking the sites from upstream to downstream
 INSERT INTO pipe_sections (name, upstream_site_id, downstream_site_id, length_m)
 SELECT 'Intake to Makongeni', u.id, d.id, 800
 FROM sites u, sites d
