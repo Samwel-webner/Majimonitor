@@ -33,10 +33,10 @@ async function loadDashboard() {
         return 'safe';
     }
 
-    function checkedByName(siteId) {
+    // The first acknowledged alert on a site, or null if nobody has claimed one
+    function checkedBy(siteId) {
         const alerts = alertsBySite[siteId] || [];
-        const acked = alerts.find(a => a.status === 'acknowledged');
-        return acked ? (acked.acknowledged_by_name || 'an officer') : null;
+        return alerts.find(a => a.status === 'acknowledged') || null;
     }
 
     // Stat row
@@ -102,7 +102,7 @@ async function loadDashboard() {
     // Site grid
     siteGrid.innerHTML = sites.map(site => {
         const severity = worstSeverity(site.id);
-        const checker = checkedByName(site.id);
+        const checker = checkedBy(site.id);
         return `
             <a href="site.html?id=${site.id}" class="site-card">
                 <div class="site-card-top">
@@ -110,8 +110,8 @@ async function loadDashboard() {
                     <span class="status-badge ${severity}">${severity}</span>
                 </div>
                 <p>${site.river_section || ''}</p>
-                <p>Officer: ${site.assigned_officer_name || 'Unassigned'}</p>
-                ${checker ? `<p>Being checked by ${checker}</p>` : ''}
+                                <p class="officer-line">${site.assigned_officer_name ? MajiAvatar.html(site.assigned_officer_id, site.assigned_officer_avatar, 20) : ''}Officer: ${site.assigned_officer_name || 'Unassigned'}</p>
+                ${checker ? `<p class="checking-line">${MajiAvatar.html(checker.acknowledged_by, checker.acknowledged_by_avatar, 20)} Being checked by ${checker.acknowledged_by_name || 'an officer'}</p>` : ''}
             </a>
         `;
     }).join('');
@@ -130,27 +130,35 @@ async function loadDashboard() {
                 </div>
                 <div>
                     <div class="activity-title">${a.parameter_name} at ${a.site_name}</div>
-                    <div class="activity-meta">${Number(a.triggered_value).toFixed(2)} ${a.unit} · ${new Date(a.created_at).toLocaleTimeString()}${a.status === 'acknowledged' ? ` · Being checked by ${a.acknowledged_by_name || 'an officer'}` : ''}</div>
+                    <div class="activity-meta">${Number(a.triggered_value).toFixed(2)} ${a.unit} · ${new Date(a.created_at).toLocaleTimeString()}${a.status === 'acknowledged' ? ` · ${MajiAvatar.html(a.acknowledged_by, a.acknowledged_by_avatar, 16)} ${a.acknowledged_by_name || 'an officer'}` : ''}</div>
                 </div>
             </a>
         `).join('');
     }
 
-    // Field Officers panel
+    // Field Officers panel (grouped by officer name, keeping id and avatar for the animal)
     const officersEl = document.getElementById('officers-list');
     const officerMap = {};
     sites.forEach(site => {
         const name = site.assigned_officer_name || 'Unassigned';
-        if (!officerMap[name]) officerMap[name] = [];
-        officerMap[name].push(site.name);
+        if (!officerMap[name]) {
+            officerMap[name] = {
+                id: site.assigned_officer_id,
+                avatar: site.assigned_officer_avatar,
+                siteNames: []
+            };
+        }
+        officerMap[name].siteNames.push(site.name);
     });
 
-    officersEl.innerHTML = Object.entries(officerMap).map(([name, siteNames]) => `
+    officersEl.innerHTML = Object.entries(officerMap).map(([name, info]) => `
         <div class="officer-item">
-            <div class="officer-avatar">${name === 'Unassigned' ? '?' : name.split(' ').map(w => w[0]).slice(0,2).join('')}</div>
+            ${name === 'Unassigned'
+                ? '<div class="officer-avatar">?</div>'
+                : MajiAvatar.html(info.id, info.avatar, 36)}
             <div>
                 <div class="officer-name">${name}</div>
-                <div class="officer-sites">${siteNames.join(', ')}</div>
+                <div class="officer-sites">${info.siteNames.join(', ')}</div>
             </div>
         </div>
     `).join('');

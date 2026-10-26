@@ -4,13 +4,16 @@ import { API_BASE_URL } from '../../constants/api';
 import { classifyValue, badgeColor, ReadingWithThresholds } from '../../utils/siteStatus';
 import { View, Text, FlatList, ActivityIndicator, StyleSheet, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Avatar from '../../components/Avatar';
 
 type SiteDetail = {
   id: number;
   name: string;
   location_description: string;
   river_section: string;
+  assigned_officer_id?: number | null;
   assigned_officer_name: string | null;
+  assigned_officer_avatar?: string | null;
 };
 
 export default function SiteDetailScreen() {
@@ -43,7 +46,8 @@ export default function SiteDetailScreen() {
     }
   }, [id]);
 
-  useEffect(() => {
+    useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadData();
   }, [loadData]);
 
@@ -71,7 +75,16 @@ export default function SiteDetailScreen() {
           <Text style={styles.location}>{site.location_description}</Text>
           <Text style={styles.section}>{site.river_section}</Text>
           {site.assigned_officer_name && (
-            <Text style={styles.officer}>Officer: {site.assigned_officer_name}</Text>
+            <View style={styles.officerRow}>
+              {site.assigned_officer_id != null ? (
+                <Avatar
+                  userId={site.assigned_officer_id}
+                  avatar={site.assigned_officer_avatar ?? null}
+                  size={24}
+                />
+              ) : null}
+              <Text style={styles.officer}>Officer: {site.assigned_officer_name}</Text>
+            </View>
           )}
         </View>
       )}
@@ -112,7 +125,8 @@ const styles = StyleSheet.create({
   siteInfo: { marginBottom: 16 },
   location: { fontSize: 14, color: '#444' },
   section: { fontSize: 13, color: '#777', marginTop: 2 },
-  officer: { fontSize: 12, color: '#999', marginTop: 4 },
+  officerRow: { flexDirection: 'row', alignItems: 'center', marginTop: 6 },
+  officer: { fontSize: 12, color: '#999', marginLeft: 6 },
   header: { fontSize: 18, fontWeight: 'bold', marginBottom: 8 },
   card: {
     backgroundColor: '#fff',

@@ -12,6 +12,16 @@ function getCurrentUser() {
     return raw ? JSON.parse(raw) : null;
 }
 
+// Merge new fields (e.g. { avatar: 'lion' }) into the saved user and redraw the sidebar
+function updateCurrentUser(changes) {
+    const user = getCurrentUser();
+    if (!user) return null;
+    const updated = Object.assign({}, user, changes);
+    localStorage.setItem('majimonitor_user', JSON.stringify(updated));
+    renderSidebarUser();
+    return updated;
+}
+
 function renderSidebarUser() {
     const el = document.getElementById('sidebar-user');
     if (!el) return;
@@ -19,12 +29,18 @@ function renderSidebarUser() {
     const user = getCurrentUser();
     if (!user) return;
 
-    const initials = user.name.split(' ').map(w => w[0]).slice(0, 2).join('');
-    const avatarClass = user.gender === 'male' ? 'avatar-male' : user.gender === 'female' ? 'avatar-female' : 'avatar-neutral';
+    let avatarHtml;
+    if (window.MajiAvatar) {
+        avatarHtml = window.MajiAvatar.html(user.id, user.avatar, 40);
+    } else {
+        // Fallback if avatars.js is not loaded on this page
+        const initials = user.name.split(' ').map(w => w[0]).slice(0, 2).join('');
+        avatarHtml = `<div class="sidebar-user-avatar avatar-neutral">${initials}</div>`;
+    }
 
     el.innerHTML = `
         <div class="sidebar-user-row">
-            <div class="sidebar-user-avatar ${avatarClass}">${initials}</div>
+            ${avatarHtml}
             <div>
                 <div class="sidebar-user-name">${user.name}</div>
                 <div class="sidebar-user-role">${user.role.replace('_', ' ')}</div>

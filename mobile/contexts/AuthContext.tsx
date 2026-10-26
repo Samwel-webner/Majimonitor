@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+import { Alert } from 'react-native';
 import { saveAuth, getStoredToken, getStoredUser, clearAuth } from '../utils/authStorage';
 import { API_BASE_URL } from '../constants/api';
 import { registerForPushNotificationsAsync } from '../utils/pushNotifications';
@@ -23,22 +24,85 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Reads the expiry time stored inside the login token. If anything goes wrong
+// reading it, we say "not expired" so a bug here can never log someone out.
+function isTokenExpired(token: string): boolean {
+  try {
+    let payload = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+    payload += '='.repeat((4 - (payload.length % 4)) % 4);
+    const data = JSON.parse((globalThis as any).atob(payload));
+    return typeof data.exp === 'number' && data.exp * 1000 < Date.now();
+  } catch {
+    return false;
+  }
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Lets the fetch watcher below call the latest logout, and stops the
+  // "Session expired" message showing more than once
+   const sessionEndedRef = useRef(false);
+  const handleExpiredRef = useRef<() => void>(() => {});
+
+  // Keep the ref pointing at the latest handler. This runs after render,
+  // which is where React wants refs to be updated.
+  useEffect(() => {
+    handleExpiredRef.current = () => {
+      if (sessionEndedRef.current) return;
+      sessionEndedRef.current = true;
+      logout();
+      Alert.alert('Session expired', 'Please log in again.');
+    };
+  });
 
   useEffect(() => {
     async function loadStoredAuth() {
       const storedToken = await getStoredToken();
       const storedUser = await getStoredUser();
       if (storedToken && storedUser) {
-        setToken(storedToken);
-        setUser(storedUser);
+        if (isTokenExpired(storedToken)) {
+          await clearAuth();
+        } else {
+          setToken(storedToken);
+          setUser(storedUser);
+        }
       }
       setIsLoading(false);
     }
     loadStoredAuth();
+  }, []);
+
+  // Watch every request the app makes. If a request that carried a token comes
+  // back 401 with a token message, the session has ended.
+  useEffect(() => {
+    const originalFetch = globalThis.fetch;
+
+    globalThis.fetch = (async (input: any, init?: any) => {
+      const response = await originalFetch(input, init);
+
+      try {
+        const url = typeof input === 'string' ? input : input?.url ?? '';
+        const sentToken = !!(init?.headers && (init.headers.Authorization || init.headers.authorization));
+
+        if (response.status === 401 && sentToken && url.startsWith(API_BASE_URL)) {
+          const body = await response.clone().json().catch(() => null);
+          if (body && /token/i.test(String(body.error || ''))) {
+            handleExpiredRef.current();
+          }
+        }
+      } catch {
+        // Never let the watcher break a normal request
+      }
+
+      return response;
+    }) as typeof fetch;
+
+    return () => {
+      globalThis.fetch = originalFetch;
+    };
   }, []);
 
   async function login(email: string, password: string) {
@@ -54,6 +118,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       throw new Error(data.error || 'Login failed');
     }
 
+    sessionEndedRef.current = false;
     await saveAuth(data.token, data.user);
     setToken(data.token);
     setUser(data.user);

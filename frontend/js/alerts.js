@@ -1,5 +1,24 @@
 let currentStatus = 'active';
 
+function escapeHtml(value) {
+    return String(value === null || value === undefined ? '' : value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+}
+
+// Who is handling this alert: the officer checking it, or the one who closed it
+function handledBy(a) {
+    if (a.status === 'acknowledged') {
+        return `<span class="handled-by">${MajiAvatar.html(a.acknowledged_by, a.acknowledged_by_avatar, 24)} Checking: ${escapeHtml(a.acknowledged_by_name || 'an officer')}</span>`;
+    }
+    if (a.status === 'resolved') {
+        return `<span class="handled-by">${MajiAvatar.html(a.resolved_by, a.resolved_by_avatar, 24)} Resolved by: ${escapeHtml(a.resolved_by_name || 'an officer')}</span>`;
+    }
+    return '-';
+}
+
 async function loadAlerts() {
     const container = document.getElementById('alerts-container');
     const query = currentStatus ? `?status=${currentStatus}` : '';
@@ -21,11 +40,12 @@ async function loadAlerts() {
     const rows = alerts.map(a => `
         <tr>
             <td>${new Date(a.created_at).toLocaleString()}</td>
-            <td>${a.site_name}</td>
-            <td>${a.parameter_name}</td>
-            <td>${Number(a.triggered_value).toFixed(2)} ${a.unit}</td>
+            <td>${escapeHtml(a.site_name)}</td>
+            <td>${escapeHtml(a.parameter_name)}</td>
+            <td>${Number(a.triggered_value).toFixed(2)} ${escapeHtml(a.unit)}</td>
             <td><span class="status-badge ${a.severity}">${a.severity}</span></td>
             <td>${a.status}</td>
+            <td>${handledBy(a)}</td>
             <td>
                 ${a.status === 'active' ? `<button data-action="acknowledged" data-id="${a.id}">Acknowledge</button>` : ''}
                 ${a.status !== 'resolved' ? `<button data-action="resolved" data-id="${a.id}">Resolve</button>` : ''}
@@ -38,7 +58,7 @@ async function loadAlerts() {
             <thead>
                 <tr>
                     <th>Time</th><th>Site</th><th>Parameter</th><th>Value</th>
-                    <th>Severity</th><th>Status</th><th></th>
+                    <th>Severity</th><th>Status</th><th>Handled by</th><th></th>
                 </tr>
             </thead>
             <tbody>${rows}</tbody>
@@ -51,7 +71,7 @@ async function loadAlerts() {
             const newStatus = btn.dataset.action;
             btn.disabled = true;
             try {
-                await apiPatch(`/alerts/${alertId}`, { status: newStatus, resolved_by: null });
+                await apiPatch(`/alerts/${alertId}`, { status: newStatus });
                 loadAlerts();
             } catch (err) {
                 console.error(err);

@@ -3,12 +3,14 @@ import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, StyleSheet, 
 import { API_BASE_URL } from '../../constants/api';
 import { useAuth } from '../../contexts/AuthContext';
 import ScreenBackground from '../../components/ScreenBackground';
+import Avatar from '../../components/Avatar';
 
 type UserItem = {
   id: number;
   name: string;
   email: string;
   role: 'admin' | 'field_officer';
+  avatar: string | null;
 };
 
 export default function OfficersScreen() {
@@ -22,13 +24,13 @@ export default function OfficersScreen() {
 
   const loadUsers = useCallback(async () => {
     try {
-  const res = await fetch(`${API_BASE_URL}/api/auth/users`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  if (!res.ok) throw new Error('Failed to load officers');
-  setUsers(await res.json());
-  setError('');
-} catch (err: any) {
+      const res = await fetch(`${API_BASE_URL}/api/auth/users`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error('Failed to load officers');
+      setUsers(await res.json());
+      setError('');
+    } catch (err: any) {
       setError(err.message || 'Something went wrong');
     } finally {
       setIsLoading(false);
@@ -37,9 +39,9 @@ export default function OfficersScreen() {
   }, [token]);
 
   useEffect(() => {
-  // eslint-disable-next-line react-hooks/set-state-in-effect -- loadUsers is async; setState happens after fetch resolves, not synchronously in the effect
-  if (isAdmin) loadUsers();
-}, [isAdmin, loadUsers]);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- loadUsers is async; setState happens after fetch resolves, not synchronously in the effect
+    if (isAdmin) loadUsers();
+  }, [isAdmin, loadUsers]);
 
   function handleRefresh() {
     setIsRefreshing(true);
@@ -106,7 +108,10 @@ export default function OfficersScreen() {
         renderItem={({ item }) => (
           <View style={styles.card}>
             <View style={styles.cardHeader}>
-              <Text style={styles.name}>{item.name}</Text>
+              <View style={styles.nameRow}>
+                <Avatar userId={item.id} avatar={item.avatar} size={40} />
+                <Text style={styles.name}>{item.name}</Text>
+              </View>
               <View style={[styles.roleBadge, item.role === 'admin' && styles.adminBadge]}>
                 <Text style={styles.roleBadgeText}>
                   {item.role === 'admin' ? 'Admin' : 'Field Officer'}
@@ -146,8 +151,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  name: { fontSize: 16, fontWeight: '600' },
-  email: { fontSize: 13, color: '#666', marginTop: 4 },
+  nameRow: { flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8 },
+  name: { fontSize: 16, fontWeight: '600', marginLeft: 10, flexShrink: 1 },
+  email: { fontSize: 13, color: '#666', marginTop: 8 },
   roleBadge: {
     backgroundColor: '#607d8b',
     paddingHorizontal: 10,
